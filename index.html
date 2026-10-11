@@ -52,6 +52,13 @@ textarea{width:100%;height:150px;border:1px solid #cbb89d;border-radius:6px;padd
 .link{background:none;border:0;color:#8b5e3c;text-decoration:underline;font-size:12px;cursor:pointer;padding:0 4px}
 .note{font-size:12px;color:#777;line-height:1.8;margin-top:24px}
 .acts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.contact{margin-top:26px;padding:18px 20px;background:#fff;border:1px solid #e4d8c6;border-radius:10px}
+.contact h3{font-size:14px;margin:0 0 12px;color:#3a2b1d;letter-spacing:1px;border-left:4px solid #8b5e3c;padding-left:8px}
+.contact .row{display:flex;gap:10px;align-items:baseline;font-size:13px;line-height:2.1;color:#3a2b1d;flex-wrap:wrap}
+.contact .k{color:#8a7a68;min-width:48px;flex-shrink:0}
+.contact a{color:#8b5e3c;text-decoration:none;border-bottom:1px dashed #cbb89d;word-break:break-all}
+.contact a:hover{color:#5c3c24}
+.wx{font-weight:700;color:#2e8b57;letter-spacing:1.5px;font-size:14px}
 @media(max-width:520px){body{padding:14px}.hex{width:100%}}
 </style>
 </head>
@@ -108,6 +115,15 @@ textarea{width:100%;height:150px;border:1px solid #cbb89d;border-radius:6px;padd
       <button class="btn ghost" id="clearBtn">清空全部记录</button>
       <span id="copyMsg" class="hint"></span>
     </div>
+  </div>
+
+  <div class="contact">
+    <h3>关于这个工具</h3>
+    <div class="row"><span class="k">作者</span><span>阿星 · 阿星AI工作室</span></div>
+    <div class="row"><span class="k">微信</span><span class="wx">staraiwork</span><span style="color:#8a7a68;font-size:12px">（加我聊聊，备注「六爻」）</span></div>
+    <div class="row"><span class="k">网站</span><span><a href="https://liuyao.staraiwork.cn/" target="_blank" rel="noopener">liuyao.staraiwork.cn</a></span></div>
+    <div class="row"><span class="k">源码</span><span><a href="https://github.com/seeyouintokyo/liuyao-divination" target="_blank" rel="noopener">github.com/seeyouintokyo/liuyao-divination</a></span></div>
+    <div class="row"><span class="k">协议</span><span>MIT 开源，随便拿去改</span></div>
   </div>
 
   <p class="note">说明：点击模式的随机数由浏览器生成，再混入你点击的时间和位置。它是一个仪式，不是物理意义上的"天意"。想要手决定结果，就用"我用真硬币"。解卦按周易的卦辞、爻辞和动爻来看，只是给你一个换角度想问题的镜子，不替你预测账单，更不替你花钱做决定。记录只在你这台浏览器里，清空即删。</p>

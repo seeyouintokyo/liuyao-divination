@@ -1,0 +1,10 @@
+common:
+  deployment:
+    instanceId: i-f8z4nozc5klw0izmrtq7
+    port: 8080
+metadata:
+  description: ''
+  groupName: default-cn-heyuan
+  name: liuyao-divination
+  regionId: cn-heyuan
+  type: app

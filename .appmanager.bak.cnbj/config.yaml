@@ -1,0 +1,90 @@
+common:
+  deployment:
+    instanceId: i-f8z4nozc5klw0izmrtq7
+    port: 8080
+  scripts:
+    start: |-
+      #!/bin/bash
+      set -e
+      APP_DIR=/root/liuyao-divination
+      ZIP_FILE=$(ls /root/project_*.zip 2>/dev/null | tail -1)
+      LOG_FILE=/root/app.log
+      PID_FILE=/root/app.pid
+
+      echo "=== [liuyao] deploy start $(date) ==="
+
+      # 停掉旧进程
+      [ -f "$PID_FILE" ] && kill "$(cat $PID_FILE)" 2>/dev/null || true
+      rm -f "$PID_FILE"
+
+      # 包管理器探测
+      if command -v dnf &>/dev/null; then
+        PKG_MGR="dnf"
+      elif command -v yum &>/dev/null; then
+        PKG_MGR="yum"
+      elif command -v apt-get &>/dev/null; then
+        PKG_MGR="apt-get"
+      else
+        echo "ERROR: No supported package manager found" && exit 1
+      fi
+
+      # 装 unzip
+      if ! command -v unzip &>/dev/null; then
+        $PKG_MGR install -y unzip
+      fi
+
+      # 装 python3（静态站用它起 http.server）
+      if ! command -v python3 &>/dev/null; then
+        if [ "$PKG_MGR" = "apt-get" ]; then
+          apt-get update -qq && apt-get install -y -qq python3
+        else
+          $PKG_MGR install -y python3
+        fi
+      fi
+
+      # 解压（必须！appmanager 上传 zip 但不解压）
+      mkdir -p "$APP_DIR"
+      if [ -n "$ZIP_FILE" ]; then
+        unzip -o "$ZIP_FILE" -d "$APP_DIR"
+      else
+        echo "ERROR: no project zip found under /root/" && exit 1
+      fi
+
+      cd "$APP_DIR"
+      echo "=== [liuyao] files ready, ls: ==="
+      ls -la
+
+      # 起静态服务
+      # 显式绑 0.0.0.0，否则只监听 127.0.0.1，安全组放行了也访问不到
+      nohup python3 -m http.server 8080 --bind 0.0.0.0 --directory "$APP_DIR" >> "$LOG_FILE" 2>&1 &
+      echo $! > "$PID_FILE"
+
+      sleep 3
+      echo "=== [liuyao] serving on :8080, pid $(cat $PID_FILE) ==="
+      cat "$LOG_FILE"
+    stop: |-
+      #!/bin/bash
+      PID_FILE=/root/app.pid
+      APP_DIR=/root/liuyao-divination
+
+      if [ -f "$PID_FILE" ]; then
+          PID=$(cat "$PID_FILE")
+          if kill -0 "$PID" 2>/dev/null; then
+              kill "$PID"
+              sleep 3
+              kill -0 "$PID" 2>/dev/null && kill -9 "$PID"
+          fi
+          rm -f "$PID_FILE"
+      fi
+
+      # 清理项目目录（带硬防护，防止误删根目录）
+      if [ -n "$APP_DIR" ] && [ "${#APP_DIR}" -gt 6 ] && [[ "$APP_DIR" == /root/* ]] && [ -d "$APP_DIR" ]; then
+          rm -rf "$APP_DIR"
+      fi
+      # 注意：此处不得添加 exit
+metadata:
+  description: ''
+  groupName: default-cn-beijing
+  name: liuyao-divination
+  regionId: cn-beijing
+  type: app
