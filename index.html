@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>六爻起卦｜自己摇一卦</title>
+<style>
+:root{color-scheme:light}
+*{box-sizing:border-box}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#faf7f2;color:#2b2b2b;margin:0;padding:24px}
+.wrap{max-width:760px;margin:0 auto}
+h1{font-size:22px;margin:0 0 6px;letter-spacing:2px}
+.lead{color:#666;font-size:14px;line-height:1.7;margin:0 0 18px}
+h2{font-size:15px;margin:22px 0 8px;border-left:4px solid #8b5e3c;padding-left:8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid #cbb89d;background:#fff;color:#3a2b1d;border-radius:20px;padding:8px 14px;font-size:14px;cursor:pointer;line-height:1.4;text-align:left}
+.chip.on{background:#8b5e3c;color:#fff;border-color:#8b5e3c}
+.chip.done::after{content:" ✓";color:#2e8b57;font-weight:700}
+.chip.on.done::after{color:#d8f5e3}
+.custom{display:flex;gap:8px;margin-top:10px}
+.custom input{flex:1;border:1px solid #cbb89d;border-radius:6px;padding:8px 10px;font-size:14px;background:#fff}
+button.btn{border:0;background:#8b5e3c;color:#fff;border-radius:6px;padding:9px 18px;font-size:14px;cursor:pointer}
+button.btn.ghost{background:#fff;color:#8b5e3c;border:1px solid #8b5e3c}
+button.btn:disabled{opacity:.4;cursor:not-allowed}
+.panel{background:#fff;border:1px solid #e4d8c6;border-radius:10px;padding:16px 18px;margin-top:10px}
+.q{font-size:16px;font-weight:600;margin:0 0 4px;line-height:1.5}
+.qmeta{font-size:12px;color:#8a7a68;margin:0 0 12px}
+.tabs{display:flex;gap:6px;margin-bottom:14px}
+.tab{padding:6px 12px;border-radius:6px;border:1px solid #cbb89d;background:#faf7f2;font-size:13px;cursor:pointer}
+.tab.on{background:#3a2b1d;color:#fff;border-color:#3a2b1d}
+.coins{display:flex;gap:16px;justify-content:center;margin:8px 0 14px;perspective:600px}
+.coin{width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#f3d98a,#c99a2e);border:3px solid #a67c1b;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#6b4a07}
+.coin.flip{animation:flip .9s ease-in-out}
+@keyframes flip{0%{transform:rotateY(0) translateY(0)}40%{transform:rotateY(900deg) translateY(-24px)}100%{transform:rotateY(1800deg) translateY(0)}}
+.center{text-align:center}
+.hint{font-size:12px;color:#888;margin-top:8px;line-height:1.6}
+.manual{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}
+.manual select{padding:8px;border:1px solid #cbb89d;border-radius:6px;font-size:14px}
+.hex{margin:16px auto 4px;width:300px}
+.line{display:grid;grid-template-columns:44px 1fr 80px;align-items:center;gap:8px;margin:6px 0;height:22px;font-size:12px;color:#555}
+.bar{height:14px;background:#3a2b1d;border-radius:2px}
+.bar.yin{background:linear-gradient(90deg,#3a2b1d 0 44%,transparent 44% 56%,#3a2b1d 56% 100%)}
+.bar.mv{box-shadow:0 0 0 2px #c0392b66}
+.line.empty .bar{background:#eee}
+.tag{font-size:12px;color:#c0392b}
+.result{margin-top:14px;padding:12px 14px;background:#f7f1e6;border-radius:8px;font-size:14px;line-height:1.8}
+.result b{font-size:17px}
+textarea{width:100%;height:150px;border:1px solid #cbb89d;border-radius:6px;padding:8px;font-size:13px;font-family:inherit;margin-top:8px;background:#fff}
+.board{margin-top:10px}
+.item{padding:8px 0;border-bottom:1px dashed #e4d8c6;font-size:14px;line-height:1.6}
+.badge{display:inline-block;font-size:11px;color:#8b5e3c;border:1px solid #dcc9ae;border-radius:10px;padding:0 6px;margin-right:6px;vertical-align:1px}
+.link{background:none;border:0;color:#8b5e3c;text-decoration:underline;font-size:12px;cursor:pointer;padding:0 4px}
+.note{font-size:12px;color:#777;line-height:1.8;margin-top:24px}
+.acts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+@media(max-width:520px){body{padding:14px}.hex{width:100%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>六爻起卦</h1>
+  <p class="lead">一问一卦，六爻自下而上。想清楚要问的事，再动手摇。每一次点击的时间和位置都会混进随机数里，摇完把结果文字复制走，拿去问 AI 或者自己查卦辞都行。也可以用真硬币摇，把结果填进来。</p>
+
+  <h2>第一步：写下这次要问的事</h2>
+  <div class="custom">
+    <input id="customText" maxlength="60" placeholder="心里默念问题，也可以写在这里（60字内）">
+    <button class="btn" id="customBtn">起这一卦</button>
+  </div>
+  <div class="chips" id="chips" style="margin-top:10px"></div>
+  <div class="hint">上面的历史问题点一下就能接着摇，换个说法也行。不写也没关系，直接起卦。</div>
+
+  <div class="panel" id="panel" style="display:none">
+    <p class="q" id="qtitle"></p>
+    <p class="qmeta" id="qmeta"></p>
+    <div class="tabs">
+      <div class="tab on" id="tabClick">点击摇钱</div>
+      <div class="tab" id="tabManual">我用真硬币</div>
+    </div>
+
+    <div id="modeClick">
+      <div class="coins"><div class="coin" id="c0">?</div><div class="coin" id="c1">?</div><div class="coin" id="c2">?</div></div>
+      <div class="center"><button class="btn" id="tossBtn">摇第 1 爻</button></div>
+      <div class="hint center">心里默念问题，想点就点。三枚硬币数背面，数出来对应四象。</div>
+    </div>
+
+    <div id="modeManual" style="display:none">
+      <div class="manual">
+        <span>三枚硬币落地，朝上的是"背面"（没字那面）有</span>
+        <select id="backs"><option value="0">0 个</option><option value="1">1 个</option><option value="2">2 个</option><option value="3">3 个</option></select>
+        <button class="btn" id="manualBtn">记下第 1 爻</button>
+      </div>
+      <div class="hint center">从下往上摇，一共六次。0 背=老阴，1 背=少阳，2 背=少阴，3 背=老阳。</div>
+    </div>
+
+    <div class="hex" id="hex"></div>
+    <div id="result"></div>
+    <div class="acts">
+      <button class="btn ghost" id="resetBtn">重摇这一卦</button>
+      <button class="btn ghost" id="undoBtn">撤销上一爻</button>
+    </div>
+  </div>
+
+  <h2>已摇的卦（共 <span id="cnt">0</span> 卦）</h2>
+  <div class="board">
+    <div id="board" style="font-size:14px;color:#888">还没有。</div>
+    <textarea id="all" readonly placeholder="摇完的卦会汇总在这里，全选复制带走。"></textarea>
+    <div style="margin-top:8px">
+      <button class="btn" id="copyBtn">复制全部结果</button>
+      <button class="btn ghost" id="clearBtn">清空全部记录</button>
+      <span id="copyMsg" class="hint"></span>
+    </div>
+  </div>
+
+  <p class="note">说明：点击模式的随机数由浏览器生成，再混入你点击的时间和位置。它是一个仪式，不是物理意义上的"天意"。想要手决定结果，就用"我用真硬币"。解卦按周易的卦辞、爻辞和动爻来看，只是给你一个换角度想问题的镜子，不替你预测账单，更不替你花钱做决定。记录只在你这台浏览器里，清空即删。</p>
+</div>
+
+<script>
+// ==CORE START==
+const TRI={"111":"乾","110":"兑","101":"离","100":"震","011":"巽","010":"坎","001":"艮","000":"坤"};
+const GRID={
+ "乾":{"乾":[1,"乾为天"],"坤":[12,"天地否"],"震":[25,"天雷无妄"],"巽":[44,"天风姤"],"坎":[6,"天水讼"],"离":[13,"天火同人"],"艮":[33,"天山遁"],"兑":[10,"天泽履"]},
+ "坤":{"乾":[11,"地天泰"],"坤":[2,"坤为地"],"震":[24,"地雷复"],"巽":[46,"地风升"],"坎":[7,"地水师"],"离":[36,"地火明夷"],"艮":[15,"地山谦"],"兑":[19,"地泽临"]},
+ "震":{"乾":[34,"雷天大壮"],"坤":[16,"雷地豫"],"震":[51,"震为雷"],"巽":[32,"雷风恒"],"坎":[40,"雷水解"],"离":[55,"雷火丰"],"艮":[62,"雷山小过"],"兑":[54,"雷泽归妹"]},
+ "巽":{"乾":[9,"风天小畜"],"坤":[20,"风地观"],"震":[42,"风雷益"],"巽":[57,"巽为风"],"坎":[59,"风水涣"],"离":[37,"风火家人"],"艮":[53,"风山渐"],"兑":[61,"风泽中孚"]},
+ "坎":{"乾":[5,"水天需"],"坤":[8,"水地比"],"震":[3,"水雷屯"],"巽":[48,"水风井"],"坎":[29,"坎为水"],"离":[63,"水火既济"],"艮":[39,"水山蹇"],"兑":[60,"水泽节"]},
+ "离":{"乾":[14,"火天大有"],"坤":[35,"火地晋"],"震":[21,"火雷噬嗑"],"巽":[50,"火风鼎"],"坎":[64,"火水未济"],"离":[30,"离为火"],"艮":[56,"火山旅"],"兑":[38,"火泽睽"]},
+ "艮":{"乾":[26,"山天大畜"],"坤":[23,"山地剥"],"震":[27,"山雷颐"],"巽":[18,"山风蛊"],"坎":[4,"山水蒙"],"离":[22,"山火贲"],"艮":[52,"艮为山"],"兑":[41,"山泽损"]},
+ "兑":{"乾":[43,"泽天夬"],"坤":[45,"泽地萃"],"震":[17,"泽雷随"],"巽":[28,"泽风大过"],"坎":[47,"泽水困"],"离":[49,"泽火革"],"艮":[31,"泽山咸"],"兑":[58,"兑为泽"]}
+};
+function isYang(v){return v===7||v===9}
+function isMoving(v){return v===6||v===9}
+function triOf(bits){return TRI[bits.join("")]}
+function hexOf(bits){const lower=triOf(bits.slice(0,3));const upper=triOf(bits.slice(3,6));const h=GRID[upper][lower];return {num:h[0],name:h[1],upper:upper,lower:lower}}
+function toBits(vals){return vals.map(v=>isYang(v)?1:0)}
+function changedBits(vals){return vals.map(v=>isMoving(v)?(isYang(v)?0:1):(isYang(v)?1:0))}
+// ==CORE END==
+
+const LINE_NAMES=["初爻","二爻","三爻","四爻","五爻","上爻"];
+const VAL_NAMES={6:"老阴 ⚋ ×（动）",7:"少阳 ⚊",8:"少阴 ⚋",9:"老阳 ⚊ ○（动）"};
+const LS_STATE="liuyao_state_v1";
+const LS_RECENT="liuyao_recent_v1";
+const MAX_RECENT=8;
+
+let state={};       // id -> {text, vals:[]}
+let recent=[];      // [{text, at}] 最近问过的问题
+let current=null;
+let mode="click";
+let busy=false;
+
+function $(id){return document.getElementById(id)}
+
+function load(){
+  try{
+    const s=JSON.parse(localStorage.getItem(LS_STATE)||"{}");
+    if(s&&typeof s==="object") state=s;
+  }catch(e){ state={} }
+  try{
+    const r=JSON.parse(localStorage.getItem(LS_RECENT)||"[]");
+    if(Array.isArray(r)) recent=r;
+  }catch(e){ recent=[] }
+}
+function save(){
+  try{
+    localStorage.setItem(LS_STATE,JSON.stringify(state));
+    localStorage.setItem(LS_RECENT,JSON.stringify(recent.slice(0,MAX_RECENT)));
+  }catch(e){}
+}
+
+function renderRecent(){
+  const box=$("chips"); box.innerHTML="";
+  if(!recent.length) return;
+  recent.slice(0,MAX_RECENT).forEach((r,i)=>{
+    const id="r"+i;
+    const b=document.createElement("button");
+    const done=state[id]&&state[id].vals.length===6;
+    b.className="chip"+(current===id?" on":"")+(done?" done":"");
+    b.textContent=r.text;
+    b.title="点击重新起一卦";
+    b.onclick=()=>selectQuestion(id,r.text);
+    box.appendChild(b);
+  });
+}
+function selectQuestion(id,text){
+  if(!state[id]||state[id].text!==text) state[id]={text:text,vals:(state[id]&&state[id].vals)||[]};
+  current=id;
+  $("panel").style.display="block";
+  $("qtitle").textContent=text||"（未写问题）";
+  $("qmeta").textContent="共六爻，自下而上。当前已摇 "+state[id].vals.length+" 爻。";
+  resetCoins();
+  save(); renderRecent(); renderHex(); renderBoard();
+}
+function resetCoins(){
+  ["c0","c1","c2"].forEach(c=>{$(c).textContent="?";$(c).classList.remove("flip")});
+}
+function nextIndex(){return current&&state[current]?state[current].vals.length:0}
+function updateButtons(){
+  const n=nextIndex(); const full=n>=6;
+  $("tossBtn").textContent=full?"六爻已成":"摇第 "+(n+1)+" 爻";
+  $("tossBtn").disabled=full||busy||!current;
+  $("manualBtn").textContent=full?"六爻已成":"记下第 "+(n+1)+" 爻";
+  $("manualBtn").disabled=full||!current;
+  $("undoBtn").disabled=!n;
+  if(current&&state[current]) $("qmeta").textContent="共六爻，自下而上。当前已摇 "+n+" 爻。";
+}
+function addLine(val){
+  state[current].vals.push(val);
+  save(); renderRecent(); renderHex(); renderBoard();
+}
+function toss(ev){
+  if(!current||busy||nextIndex()>=6) return;
+  busy=true; updateButtons();
+  const a=new Uint8Array(3); crypto.getRandomValues(a);
+  const t=Math.floor(performance.now()*1000);
+  const px=(ev&&ev.clientX?ev.clientX:0)+(ev&&ev.clientY?ev.clientY:0);
+  const backs=[0,1,2].map(i=>((a[i]^(t>>i)^(px>>i))&1));
+  ["c0","c1","c2"].forEach(c=>{$(c).textContent="…";$(c).classList.remove("flip");void $(c).offsetWidth;$(c).classList.add("flip")});
+  setTimeout(()=>{
+    backs.forEach((b,i)=>{$("c"+i).textContent=b?"背":"字"});
+    const val=6+backs.reduce((x,y)=>x+y,0);
+    busy=false;
+    addLine(val);
+  },900);
+}
+function manual(){
+  if(!current||nextIndex()>=6) return;
+  addLine(6+parseInt($("backs").value,10));
+}
+function undo(){
+  if(!current||!state[current]||!state[current].vals.length) return;
+  state[current].vals.pop();
+  save(); renderRecent(); renderHex(); renderBoard();
+}
+function renderHex(){
+  const box=$("hex"); box.innerHTML="";
+  if(!current||!state[current]) return;
+  const vals=state[current].vals;
+  for(let i=5;i>=0;i--){
+    const row=document.createElement("div");
+    const has=i<vals.length;
+    row.className="line"+(has?"":" empty");
+    const lab=document.createElement("span"); lab.textContent=LINE_NAMES[i];
+    const bar=document.createElement("div");
+    bar.className="bar"+(has&&!isYang(vals[i])?" yin":"")+(has&&isMoving(vals[i])?" mv":"");
+    const tag=document.createElement("span"); tag.className="tag";
+    tag.textContent=has?(isMoving(vals[i])?(vals[i]===9?"老阳 ○":"老阴 ×"):""):"";
+    row.appendChild(lab);row.appendChild(bar);row.appendChild(tag);
+    box.appendChild(row);
+  }
+  updateButtons();
+  renderResult();
+}
+function describe(id){
+  const s=state[id]; if(!s||s.vals.length<6) return null;
+  const vals=s.vals;
+  const h=hexOf(toBits(vals));
+  const movers=[]; vals.forEach((v,i)=>{if(isMoving(v)) movers.push(LINE_NAMES[i]+(v===9?"（老阳）":"（老阴）"))});
+  const changed=movers.length?hexOf(changedBits(vals)):null;
+  const lines=vals.map((v,i)=>LINE_NAMES[i]+"："+VAL_NAMES[v]).join("\n");
+  const text="【问题】"+(s.text||"（未写）")+"\n【六爻（自下而上）】\n"+lines+
+    "\n【本卦】"+h.name+"（第"+h.num+"卦，上"+h.upper+"下"+h.lower+"）"+
+    "\n【动爻】"+(movers.length?movers.join("、"):"无（六爻皆静）")+
+    "\n【变卦】"+(changed?changed.name+"（第"+changed.num+"卦，上"+changed.upper+"下"+changed.lower+"）":"无")+
+    "\n【互卦】"+(function(){const b=toBits(vals);const x=b.slice(1,4),y=b.slice(2,5);const g=hexOf(x.concat(y));return g.name+"（第"+g.num+"卦）"})();
+  return {h:h,changed:changed,movers:movers,text:text};
+}
+function renderResult(){
+  const box=$("result"); box.innerHTML="";
+  if(!current) return;
+  const d=describe(current); if(!d) return;
+  const div=document.createElement("div"); div.className="result";
+  div.innerHTML="<div>本卦：<b></b></div><div class=\"m\"></div><div class=\"c\"></div><div class=\"g\"></div>";
+  div.querySelector("b").textContent=d.h.name+"（第"+d.h.num+"卦）";
+  div.querySelector(".m").textContent="动爻："+(d.movers.length?d.movers.join("、"):"无，六爻皆静");
+  div.querySelector(".c").textContent="变卦："+(d.changed?d.changed.name+"（第"+d.changed.num+"卦）":"无");
+  const b=toBits(state[current].vals); const g=hexOf(b.slice(1,4).concat(b.slice(2,5)));
+  div.querySelector(".g").textContent="互卦："+g.name+"（第"+g.num+"卦）";
+  box.appendChild(div);
+}
+function renderBoard(){
+  const ids=Object.keys(state).filter(id=>state[id]&&state[id].vals.length===6);
+  $("cnt").textContent=ids.length;
+  const b=$("board");
+  if(!ids.length){b.textContent="还没有。";b.style.color="#888";$("all").value="";return}
+  b.style.color="#2b2b2b"; b.innerHTML="";
+  const texts=[];
+  ids.forEach(id=>{
+    const d=describe(id);
+    const it=document.createElement("div"); it.className="item";
+    const badge=document.createElement("span"); badge.className="badge";
+    badge.textContent="第"+d.h.num+"卦";
+    const txt=document.createTextNode(state[id].text+" → "+d.h.name+(d.changed?"，变 "+d.changed.name:"（无动爻）")+" ");
+    it.appendChild(badge); it.appendChild(txt);
+    const cbtn=document.createElement("button"); cbtn.className="link"; cbtn.textContent="复制这一卦";
+    cbtn.onclick=()=>{ copyText(d.text); $("copyMsg").textContent="已复制「"+d.h.name+"」"; };
+    const dbtn=document.createElement("button"); dbtn.className="link"; dbtn.textContent="删除";
+    dbtn.onclick=()=>{ delete state[id]; save(); if(current===id){current=null;$("panel").style.display="none"} renderRecent(); renderHex(); renderBoard(); };
+    it.appendChild(cbtn); it.appendChild(dbtn);
+    b.appendChild(it);
+    texts.push(d.text);
+  });
+  $("all").value=texts.join("\n\n----------\n\n");
+}
+function reset(){
+  if(!current||!state[current]) return;
+  state[current].vals=[];
+  resetCoins(); save(); renderRecent(); renderHex(); renderBoard();
+}
+function clearAll(){
+  if(!confirm("清空全部记录？已摇的卦和最近问题都会删掉，无法恢复。")) return;
+  state={}; recent=[]; current=null;
+  save();
+  $("panel").style.display="none";
+  renderRecent(); renderBoard();
+  $("copyMsg").textContent="已清空。";
+}
+function setMode(m){
+  mode=m;
+  $("modeClick").style.display=m==="click"?"block":"none";
+  $("modeManual").style.display=m==="manual"?"block":"none";
+  $("tabClick").classList.toggle("on",m==="click");
+  $("tabManual").classList.toggle("on",m==="manual");
+}
+function copyText(s){
+  const ta=document.createElement("textarea");
+  ta.value=s; ta.style.position="fixed"; ta.style.opacity="0";
+  document.body.appendChild(ta); ta.select();
+  let ok=false; try{ ok=document.execCommand("copy") }catch(e){}
+  document.body.removeChild(ta);
+  if(!ok&&navigator.clipboard) navigator.clipboard.writeText(s).catch(()=>{});
+  return ok;
+}
+function startQuestion(){
+  const t=$("customText").value.trim();
+  const id=t?("u"+Date.now()):("g"+Date.now());
+  state[id]={text:t,vals:[]};
+  const keep=recent.filter(r=>r.text!==t);
+  keep.unshift({text:t||"（未写问题）",at:Date.now()});
+  recent=keep.slice(0,MAX_RECENT);
+  $("customText").value="";
+  save();
+  selectQuestion(id,t);
+}
+
+$("tossBtn").addEventListener("click",toss);
+$("manualBtn").addEventListener("click",manual);
+$("resetBtn").addEventListener("click",reset);
+$("undoBtn").addEventListener("click",undo);
+$("clearBtn").addEventListener("click",clearAll);
+$("customBtn").addEventListener("click",startQuestion);
+$("customText").addEventListener("keydown",e=>{ if(e.key==="Enter") startQuestion() });
+$("tabClick").addEventListener("click",()=>setMode("click"));
+$("tabManual").addEventListener("click",()=>setMode("manual"));
+$("copyBtn").addEventListener("click",()=>{
+  const ta=$("all"); if(!ta.value){$("copyMsg").textContent="还没有可复制的结果。";return}
+  const ok=copyText(ta.value);
+  $("copyMsg").textContent=ok?"已复制，拿去用吧。":"没能自动复制，请在上面的框里全选后手动复制。";
+});
+
+load();
+renderRecent();
+renderBoard();
+if(current&&state[current]) selectQuestion(current,state[current].text);
+</script>
+</body>
+</html>
